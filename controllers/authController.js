@@ -25,7 +25,7 @@ export const login = async (req, res, next) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     if (!user || !(await bcrypt.compare(password, user.password))) {
-      return res.status(401).json({ 
+      return res.status(401).json({
         message: 'Identifiants invalides',
         error: 'Email ou mot de passe incorrect'
       });
@@ -58,16 +58,19 @@ export const getMe = async (req, res, next) => {
       return res.status(404).json({ message: 'Utilisateur non trouvé' });
     }
 
-    res.json({ 
+    res.json({
       data: {
-        id: user._id.toString(), // ← AJOUTÉ
-        _id: user._id, // ← Garde l'ObjectId
+        id: user._id.toString(),
+        _id: user._id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
         role: user.role,
         phone: user.phone,
-        // ... autres champs
+        photo: user.photo,
+        photoURL: user.photoURL,
+        avatar: user.avatar,
+        companyDetails: user.companyDetails
       }
     });
   } catch (err) {
