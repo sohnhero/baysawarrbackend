@@ -16,12 +16,12 @@ import { uploadProductImages, handleUploadError } from '../middlewares/cloudinar
 const router = express.Router();
 
 router.route('/')
-  .post(isAdmin, uploadProductImages, handleUploadError, createEvent)
+  .post(protect, isAdmin, uploadProductImages, handleUploadError, createEvent)
   .get(getAllEvents);
 
 router.route('/:id')
-  .put(isAdmin, uploadProductImages, handleUploadError, updateEvent)
-  .delete(isAdmin, deleteEvent);
+  .put(protect, isAdmin, uploadProductImages, handleUploadError, updateEvent)
+  .delete(protect, isAdmin, deleteEvent);
 
 router.route('/:slug')
   .get(getEventBySlug);

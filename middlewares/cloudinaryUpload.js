@@ -14,7 +14,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: 'baysawaar',
-    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
+    allowed_formats: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'],
     transformation: [
       { width: 1000, height: 1000, crop: 'limit' },
       { quality: 'auto' },
@@ -74,21 +74,21 @@ export const handleUploadError = (error, req, res, next) => {
       });
     }
   }
-  
+
   if (error.message === 'Seules les images sont autorisées!') {
     return res.status(400).json({
       error: 'Type de fichier non autorisé',
       message: 'Seules les images (JPG, PNG, GIF, WebP) sont acceptées'
     });
   }
-  
+
   next(error);
 };
 
 // Fonction utilitaire pour formater les données d'upload
 export const formatUploadData = (req) => {
   const uploadData = {};
-  
+
   // Traiter les fichiers uniques
   if (req.file) {
     uploadData[req.file.fieldname] = {
@@ -97,7 +97,7 @@ export const formatUploadData = (req) => {
       alt: req.file.originalname
     };
   }
-  
+
   // Traiter les fichiers multiples
   if (req.files) {
     if (Array.isArray(req.files)) {
@@ -130,7 +130,7 @@ export const formatUploadData = (req) => {
       });
     }
   }
-  
+
   return uploadData;
 };
 

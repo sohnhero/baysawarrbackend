@@ -1196,3 +1196,5 @@
     at SchemaDocumentArray.doValidate (/Users/macbookpro/Desktop/Baysaawaarr/FrontBaysawaar/Backbaysawar/node_modules/mongoose/lib/schema/documentArray.js:247:12)
     at /Users/macbookpro/Desktop/Baysaawaarr/FrontBaysawaar/Backbaysawar/node_modules/mongoose/lib/document.js:3111:18
     at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
+2026-01-07T15:39:43.975Z - ERROR - undefined
+2026-01-07T15:44:06.118Z - ERROR - undefined

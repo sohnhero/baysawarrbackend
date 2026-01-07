@@ -113,8 +113,13 @@ export const registerToEvent = asyncHandler(async (req, res) => {
 // @desc    Mettre à jour un événement (admin only)
 // @route   PUT /api/events/:id
 export const updateEvent = asyncHandler(async (req, res) => {
+  console.log('[UPDATE_EVENT] Controller invoked for event ID:', req.params.id);
+  console.log('[UPDATE_EVENT] req.body:', req.body);
+  console.log('[UPDATE_EVENT] req.files:', req.files);
+  console.log('[UPDATE_EVENT] req.file:', req.file);
   const { title, dateStart, dateEnd, ...rest } = req.body;
   const uploadData = formatUploadData(req);
+  console.log('[UPDATE_EVENT] uploadData:', uploadData);
 
   const event = await Event.findById(req.params.id);
 
