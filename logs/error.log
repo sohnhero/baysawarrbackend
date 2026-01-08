@@ -1198,3 +1198,17 @@
     at process.processTicksAndRejections (node:internal/process/task_queues:85:11)
 2026-01-07T15:39:43.975Z - ERROR - undefined
 2026-01-07T15:44:06.118Z - ERROR - undefined
+2026-01-07T18:53:44.604Z - ERROR - MongoNetworkTimeoutError: Socket 'secureConnect' timed out after 30004ms (connectTimeoutMS: 30000)
+    at TLSSocket.<anonymous> (/Users/macbookpro/Desktop/Backbaysawar/node_modules/mongodb/lib/cmap/connect.js:288:20)
+    at Object.onceWrapper (node:events:632:28)
+    at TLSSocket.emit (node:events:518:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
+2026-01-07T18:54:03.878Z - ERROR - MongoNetworkTimeoutError: Socket 'secureConnect' timed out after 30011ms (connectTimeoutMS: 30000)
+    at TLSSocket.<anonymous> (/Users/macbookpro/Desktop/Backbaysawar/node_modules/mongodb/lib/cmap/connect.js:288:20)
+    at Object.onceWrapper (node:events:632:28)
+    at TLSSocket.emit (node:events:518:28)
+    at Socket._onTimeout (node:net:609:8)
+    at listOnTimeout (node:internal/timers:594:17)
+    at process.processTimers (node:internal/timers:529:7)
