@@ -2,18 +2,10 @@
 import asyncHandler from 'express-async-handler';
 import Event from '../models/Event.js';
 import User from '../models/User.js';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 
-const transporter = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 465,
-  secure: true,
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 import { formatUploadData } from '../middlewares/cloudinaryUpload.js';
 
@@ -92,27 +84,23 @@ export const registerToEvent = asyncHandler(async (req, res) => {
   // Envoyer un email de confirmation à l'utilisateur
   const user = await User.findById(userId);
   if (user && user.email) {
-    const mailOptionsUser = {
-      from: process.env.EMAIL_USER,
+    // Send emails asynchronously without blocking the response
+    resend.emails.send({
+      from: 'Bay Sa Waar <onboarding@resend.dev>',
       to: user.email,
       subject: `Confirmation d'inscription à l'événement: ${event.title}`,
-      text: `Bonjour ${user.firstName},\n\nVous êtes bien inscrit à l'événement "${event.title}" qui se tiendra du ${event.dateStart.toLocaleDateString()} au ${event.dateEnd.toLocaleDateString()} à ${event.location}.\n\nMerci de votre participation!\n\nCordialement,\nL'équipe Bayy Sa Waar`
-    };
-
-    // Send emails asynchronously without blocking the response
-    transporter.sendMail(mailOptionsUser).catch(error => {
-      console.error('Erreur lors de l\'envoi de l\'email utilisateur:', error);
+      text: `Bonjour ${user.firstName},\n\nVous êtes bien inscrit à l'événement "${event.title}" qui se tiendra du ${event.dateStart.toLocaleDateString()} au ${event.dateEnd.toLocaleDateString()} à ${event.location}.\n\nMerci de votre participation!\n\nCordialement,\nL'équipe Bayy Sa Waar`,
+    }).catch(error => {
+      console.error('Erreur Resend utilisateur:', error);
     });
 
-    const mailOptionsAdmin = {
-      from: process.env.EMAIL_USER,
-      to: process.env.EMAIL_USER,
+    resend.emails.send({
+      from: 'Bay Sa Waar <onboarding@resend.dev>',
+      to: process.env.EMAIL_USER || 'iguisse97@gmail.com',
       subject: `Nouvelle inscription à l'événement: ${event.title}`,
-      text: `L'utilisateur ${user.firstName} ${user.lastName} (${user.email}) s'est inscrit à l'événement "${event.title}".`
-    };
-
-    transporter.sendMail(mailOptionsAdmin).catch(error => {
-      console.error('Erreur lors de l\'envoi de l\'email admin:', error);
+      text: `L'utilisateur ${user.firstName} ${user.lastName} (${user.email}) s'est inscrit à l'événement "${event.title}".`,
+    }).catch(error => {
+      console.error('Erreur Resend admin:', error);
     });
   }
 

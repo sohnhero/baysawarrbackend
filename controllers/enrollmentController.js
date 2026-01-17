@@ -1,5 +1,5 @@
 import Enrollment from '../models/Enrollment.js';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import dotenv from 'dotenv';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
@@ -8,6 +8,8 @@ import { formatUploadData } from '../middlewares/cloudinaryUpload.js';
 import jwt from 'jsonwebtoken';
 
 dotenv.config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
 
 export const submitEnrollment = async (req, res, next) => {
   try {
@@ -45,7 +47,7 @@ export const submitEnrollment = async (req, res, next) => {
     }
 
     // ==== 4. Créer l'utilisateur automatiquement ====
-  const password = crypto.randomBytes(8).toString('hex');
+    const password = crypto.randomBytes(8).toString('hex');
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = new User({
@@ -66,7 +68,7 @@ export const submitEnrollment = async (req, res, next) => {
       process.env.JWT_SECRET,
       { expiresIn: '7d' } // plus long pour les nouveaux membres
     );
-    
+
     // ==== 5. Normaliser les intérêts ====
     let parsedInterests = [];
 
@@ -101,75 +103,58 @@ export const submitEnrollment = async (req, res, next) => {
     await enrollment.save();
 
     // ==== 7. Envoi des emails ====
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      console.error('EMAIL_USER ou EMAIL_PASS manquant dans .env');
-    } else {
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-          user: process.env.EMAIL_USER,
-          pass: process.env.EMAIL_PASS,
-        },
-      });
-
-      // ---- Email à l'utilisateur ----
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
-        to: email,
-        subject: 'Bienvenue chez BAY SA WAAR – Votre compte est prêt !',
-        html: `
-          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-            <h2 style="color: #059669;">Bonjour ${firstName} !</h2>
-            <p>Merci pour votre inscription en tant que <strong>membre</strong> de <strong>BAY SA WAAR</strong>.</p>
-            <p>Votre demande est <strong>en cours de validation</strong>. Une fois approuvée, vous aurez accès à :</p>
-            <ul>
-              <li>Formations gratuites (transformation des céréales, fruits, légumes)</li>
-              <li>Programmes d'autonomisation des femmes</li>
-              <li>Accompagnement à la formalisation</li>
-              <li>Offres exclusives Fabira Trading</li>
-            </ul>
-            <div style="background:#f3f4f6;padding:15px;border-radius:8px;margin:20px 0;">
-              <p><strong>Vos identifiants de connexion :</strong></p>
-              <p><strong>Email :</strong> ${email}</p>
-              <p><strong>Mot de passe :</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;">${password}</code></p>
-            </div>
-            <p>
-              <a href="https://bayy-sa-waar-front.vercel.app/login" style="background:#059669;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;">
-                Se connecter maintenant
-              </a>
-            </p>
-            <p style="margin-top:20px;color:#666;font-size:0.9em;">
-              <strong>Conseil :</strong> Changez votre mot de passe après la première connexion.
-            </p>
-            <hr style="margin:30px 0;border:0;border-top:1px solid #eee;">
-            <p style="color:#999;font-size:0.8em;">L'équipe BAY SA WAAR<br>contact@baysawaar.sn</p>
-          </div>
-        `,
-      });
-
-      // ---- Email à l'admin ----
-      try {
-        await transporter.sendMail({
-          from: process.env.EMAIL_USER,
-          to: 'iguisse97@gmail.com',
-          subject: 'Nouvelle inscription membre - BAY SA WAAR',
-          html: `
-            <h3>Nouvelle demande d'inscription</h3>
-            <p><strong>Nom :</strong> ${firstName} ${lastName}</p>
+    // ---- Email à l'utilisateur ----
+    resend.emails.send({
+      from: 'Bay Sa Waar <onboarding@resend.dev>',
+      to: email,
+      subject: 'Bienvenue chez BAY SA WAAR – Votre compte est prêt !',
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
+          <h2 style="color: #059669;">Bonjour ${firstName} !</h2>
+          <p>Merci pour votre inscription en tant que <strong>membre</strong> de <strong>BAY SA WAAR</strong>.</p>
+          <p>Votre demande est <strong>en cours de validation</strong>. Une fois approuvée, vous aurez accès à :</p>
+          <ul>
+            <li>Formations gratuites (transformation des céréales, fruits, légumes)</li>
+            <li>Programmes d'autonomisation des femmes</li>
+            <li>Accompagnement à la formalisation</li>
+            <li>Offres exclusives Fabira Trading</li>
+          </ul>
+          <div style="background:#f3f4f6;padding:15px;border-radius:8px;margin:20px 0;">
+            <p><strong>Vos identifiants de connexion :</strong></p>
             <p><strong>Email :</strong> ${email}</p>
-            <p><strong>Téléphone :</strong> ${phone}</p>
-            <p><strong>Localisation :</strong> ${city}, ${country}</p>
-            <p><strong>Entreprise :</strong> ${companyName || 'Non renseignée'}</p>
-            <p><strong>Intérêts :</strong> ${parsedInterests.join(', ') || 'Aucun'}</p>
-            <hr>
-            <p><a href="https://bayy-sa-waar-front.vercel.app/admin/enrollments">Voir dans le dashboard admin</a></p>
-          `,
-        });
-        console.log('Email admin envoyé');
-      } catch (emailErr) {
-        console.error('Erreur email admin:', emailErr);
-      }
-    }
+            <p><strong>Mot de passe :</strong> <code style="background:#e5e7eb;padding:2px 6px;border-radius:4px;">${password}</code></p>
+          </div>
+          <p>
+            <a href="https://bayy-sa-waar-front.vercel.app/login" style="background:#059669;color:white;padding:12px 24px;text-decoration:none;border-radius:8px;display:inline-block;">
+              Se connecter maintenant
+            </a>
+          </p>
+          <p style="margin-top:20px;color:#666;font-size:0.9em;">
+            <strong>Conseil :</strong> Changez votre mot de passe après la première connexion.
+          </p>
+          <hr style="margin:30px 0;border:0;border-top:1px solid #eee;">
+          <p style="color:#999;font-size:0.8em;">L'équipe BAY SA WAAR<br>contact@baysawaar.sn</p>
+        </div>
+      `,
+    }).catch(err => console.error('Erreur Resend utilisateur:', err));
+
+    // ---- Email à l'admin ----
+    resend.emails.send({
+      from: 'Bay Sa Waar <onboarding@resend.dev>',
+      to: process.env.EMAIL_USER || 'iguisse97@gmail.com',
+      subject: 'Nouvelle inscription membre - BAY SA WAAR',
+      html: `
+        <h3>Nouvelle demande d'inscription</h3>
+        <p><strong>Nom :</strong> ${firstName} ${lastName}</p>
+        <p><strong>Email :</strong> ${email}</p>
+        <p><strong>Téléphone :</strong> ${phone}</p>
+        <p><strong>Localisation :</strong> ${city}, ${country}</p>
+        <p><strong>Entreprise :</strong> ${companyName || 'Non renseignée'}</p>
+        <p><strong>Intérêts :</strong> ${parsedInterests.join(', ') || 'Aucun'}</p>
+        <hr>
+        <p><a href="https://bayy-sa-waar-front.vercel.app/admin/enrollments">Voir dans le dashboard admin</a></p>
+      `,
+    }).catch(err => console.error('Erreur Resend admin:', err));
 
     // ==== 8. Réponse ====
     res.status(201).json({
@@ -223,16 +208,13 @@ export const updateEnrollment = async (req, res, next) => {
 
     if (status === 'approved') {
       const user = await User.findById(enrollment.userId);
-      const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-      });
-      await transporter.sendMail({
-        from: process.env.EMAIL_USER,
+
+      resend.emails.send({
+        from: 'Bay Sa Waar <onboarding@resend.dev>',
         to: user.email,
         subject: 'Votre inscription est approuvée !',
         text: `Félicitations ${user.firstName} ! Votre compte est actif. Connectez-vous sur https://bayy-sa-waar-front.vercel.app/login`,
-      });
+      }).catch(err => console.error('Erreur Resend approbation:', err));
     }
 
     res.json({ message: 'Statut mis à jour', enrollment });
