@@ -1252,3 +1252,5 @@
     at async FindCursor.cursorInit (/Users/macbookpro/Desktop/Backbaysawar/node_modules/mongodb/lib/cursor/abstract_cursor.js:632:27)
     at async FindCursor.fetchBatch (/Users/macbookpro/Desktop/Backbaysawar/node_modules/mongodb/lib/cursor/abstract_cursor.js:666:13)
     at async FindCursor.next (/Users/macbookpro/Desktop/Backbaysawar/node_modules/mongodb/lib/cursor/abstract_cursor.js:342:17)
+2026-01-24T18:06:36.870Z - ERROR - Error: connect ETIMEDOUT 142.251.168.109:465
+    at TCPConnectWrap.afterConnect [as oncomplete] (node:net:1634:16)

@@ -76,7 +76,7 @@ export async function fetchPosts(req, res, next) {
 
 export const submitEnrollment = async (req, res, next) => {
   try {
-        const {
+    const {
       type,
       firstName,
       lastName,
@@ -94,7 +94,7 @@ export const submitEnrollment = async (req, res, next) => {
     } = req.body;
 
     // Valider le type d'enrôlement
-    if (!['partner', 'member'].includes(type)) {
+    if (!['member'].includes(type)) {
       return res.status(400).json({ error: 'Type d’enrôlement invalide' });
     }
 
@@ -142,7 +142,7 @@ export const submitEnrollment = async (req, res, next) => {
       userId: user._id,
       status: 'pending',
     };
-    
+
     const enrollment = new Enrollment(enrollmentData);
     await enrollment.save();
 

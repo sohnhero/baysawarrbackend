@@ -230,7 +230,7 @@ export const getUserStats = async (req, res, next) => {
   try {
     if (req.userRole !== 'admin') throw new Error('Accès interdit');
     const totalUsers = await User.countDocuments();
-    const roles = ['partner', 'member', 'client', 'admin'];
+    const roles = ['member', 'admin'];
     const roleCounts = {};
     for (const role of roles) {
       roleCounts[role] = await User.countDocuments({ role });
