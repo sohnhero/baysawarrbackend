@@ -3,7 +3,7 @@ import asyncHandler from 'express-async-handler';
 import Event from '../models/Event.js';
 import User from '../models/User.js';
 import { Resend } from 'resend';
-
+import { getEventRegistrationEmail, getAdminNotificationEmail } from '../utils/emailTemplates.js';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -89,16 +89,17 @@ export const registerToEvent = asyncHandler(async (req, res) => {
       from: 'Bay Sa Waar <onboarding@resend.dev>',
       to: user.email,
       subject: `Confirmation d'inscription à l'événement: ${event.title}`,
-      text: `Bonjour ${user.firstName},\n\nVous êtes bien inscrit à l'événement "${event.title}" qui se tiendra du ${event.dateStart.toLocaleDateString()} au ${event.dateEnd.toLocaleDateString()} à ${event.location}.\n\nMerci de votre participation!\n\nCordialement,\nL'équipe Bayy Sa Waar`,
+      html: getEventRegistrationEmail(user.firstName, event.title, `${event.dateStart.toLocaleDateString()} - ${event.dateEnd.toLocaleDateString()}`, event.location)
     }).catch(error => {
       console.error('Erreur Resend utilisateur:', error);
     });
 
+    const adminContent = `L'utilisateur ${user.firstName} ${user.lastName} (${user.email}) s'est inscrit à l'événement "${event.title}".`;
     resend.emails.send({
       from: 'Bay Sa Waar <onboarding@resend.dev>',
       to: process.env.EMAIL_USER || 'iguisse97@gmail.com',
       subject: `Nouvelle inscription à l'événement: ${event.title}`,
-      text: `L'utilisateur ${user.firstName} ${user.lastName} (${user.email}) s'est inscrit à l'événement "${event.title}".`,
+      html: getAdminNotificationEmail(`Inscription Événement: ${event.title}`, adminContent)
     }).catch(error => {
       console.error('Erreur Resend admin:', error);
     });

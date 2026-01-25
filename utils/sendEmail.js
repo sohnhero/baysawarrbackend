@@ -1,35 +1,36 @@
-import { createTransport } from 'nodemailer';
+import { Resend } from 'resend';
+import dotenv from 'dotenv';
 
-const sendEmail = async (to, subject, text) => {
+dotenv.config();
+
+const resend = new Resend(process.env.RESEND_API_KEY);
+
+const sendEmail = async (to, subject, html) => {
   try {
-    // Vérifier que les variables d'environnement sont présentes
-    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-      throw new Error('EMAIL_USER ou EMAIL_PASS manquant dans les variables d\'environnement');
+    if (!process.env.RESEND_API_KEY) {
+      console.error('RESEND_API_KEY manquant');
+      return;
     }
 
-    const transporter = createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
-    });
-
-    // Vérifier la connexion
-    await transporter.verify();
-
-    const result = await transporter.sendMail({
-      from: process.env.EMAIL_USER,
+    const { data, error } = await resend.emails.send({
+      from: 'Bay Sa Waar <onboarding@resend.dev>',
       to,
       subject,
-      text
+      html // using html content
     });
 
-    console.log('✅ Email envoyé avec succès:', result.messageId);
-    return result;
+    if (error) {
+      console.error('❌ Erreur Resend:', error);
+      return null;
+    }
+
+    console.log('✅ Email envoyé:', data.id);
+    return data;
   } catch (error) {
-    console.error('❌ Erreur lors de l\'envoi de l\'email:', error);
-    throw error;
+    console.error('❌ Exception sendEmail:', error);
+    // Don't throw if we want background processing resilience, but keeping consistent with "async" behavior 
+    // where caller decides to await or catch.
+    return null;
   }
 };
 

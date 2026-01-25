@@ -5,8 +5,16 @@ import User from '../models/User.js';
 import sendEmail from '../utils/sendEmail.js';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
+import {
+  getAdminNotificationEmail,
+  getRegistrationReceivedEmail,
+  getWelcomeEmail,
+  getApprovalEmail,
+  getRejectionEmail
+} from '../utils/emailTemplates.js';
 
 export const getAdminStats = async (req, res, next) => {
+  // ... (rest of the file starts here)
   try {
     const totalUsers = await User.countDocuments();
     const totalEnrollments = await Enrollment.countDocuments();
@@ -121,14 +129,19 @@ export const submitEnrollment = async (req, res, next) => {
     const enrollment = new Enrollment({ type, firstName, lastName, email, phone, country, city, companyName });
     await enrollment.save();
 
+
+
     if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
       // Email to Admin
-      await sendEmail('iguisse97@gmail.com', `Nouvelle demande d'inscription - ${type}`,
-        `Type: ${type}\nNom: ${firstName} ${lastName}\nEmail: ${email}\nTéléphone: ${phone}\nPays: ${country}\nVille: ${city}\nEntreprise: ${companyName}`);
+      const adminContent = `Type: ${type}\nNom: ${firstName} ${lastName}\nEmail: ${email}\nTéléphone: ${phone}\nPays: ${country}\nVille: ${city}\nEntreprise: ${companyName}`;
+      sendEmail('iguisse97@gmail.com', `Nouvelle demande d'inscription - ${type}`,
+        getAdminNotificationEmail(`Nouvelle demande - ${type}`, adminContent))
+        .catch(err => console.error('Erreur email admin submitEnrollment:', err));
 
       // Email to Applicant
-      await sendEmail(email, 'Confirmation de réception de votre demande - BAY SA WAAR',
-        `Bonjour ${firstName} ${lastName},\n\nNous avons bien reçu votre demande d'inscription pour : ${type}.\n\nVotre dossier est actuellement en cours d'examen par notre équipe. Vous recevrez une notification par email dès qu'une décision sera prise.\n\nMerci de votre intérêt pour BAY SA WAAR.\n\nCordialement,\nL'équipe BAY SA WAAR`);
+      sendEmail(email, 'Confirmation de réception de votre demande - BAY SA WAAR',
+        getRegistrationReceivedEmail(firstName, type))
+        .catch(err => console.error('Erreur email applicant submitEnrollment:', err));
     }
     res.status(201).json({ message: 'Demande soumise avec succès. Un email de confirmation vous a été envoyé.' });
   } catch (err) {
@@ -208,17 +221,20 @@ export const updateEnrollment = async (req, res, next) => {
         await enrollment.save();
 
         // Send Welcome Email with Password
-        await sendEmail(enrollment.email, 'Bienvenue chez BAY SA WAAR - Vos identifiants',
-          `Bonjour ${enrollment.firstName},\n\nVotre demande d'inscription a été APPROUVÉE !\n\nUn compte a été créé pour vous. Voici vos identifiants de connexion :\n\nEmail : ${enrollment.email}\nMot de passe : ${generatedPassword}\n\nVous pouvez vous connecter ici : https://baysawaar.com/login\n\nNous vous recommandons de changer votre mot de passe après votre première connexion.\n\nBienvenue dans la communauté !\n\nL'équipe BAY SA WAAR`);
+        sendEmail(enrollment.email, 'Bienvenue chez BAY SA WAAR - Vos identifiants',
+          getWelcomeEmail(enrollment.firstName, enrollment.email, generatedPassword))
+          .catch(err => console.error('Erreur email welcome:', err));
       } else {
         // User exists, maybe update role or just notify
-        await sendEmail(enrollment.email, 'Demande Approuvée - BAY SA WAAR',
-          `Bonjour ${enrollment.firstName},\n\nVotre nouvelle demande d'inscription a été APPROUVÉE.\n\nComme vous disposez déjà d'un compte, vous pouvez continuer à utiliser vos identifiants habituels.\n\nCordialement,\nL'équipe BAY SA WAAR`);
+        sendEmail(enrollment.email, 'Demande Approuvée - BAY SA WAAR',
+          getApprovalEmail(enrollment.firstName))
+          .catch(err => console.error('Erreur email approval:', err));
       }
     } else if (enrollment.status === 'rejected') {
       // Send Rejection Email
-      await sendEmail(enrollment.email, 'Mise à jour concernant votre demande - BAY SA WAAR',
-        `Bonjour ${enrollment.firstName},\n\nNous vous remercions pour l'intérêt que vous portez à BAY SA WAAR.\n\nAprès étude de votre dossier, nous avons le regret de vous informer que votre demande d'inscription n'a pas été retenue pour le moment.\n\nN'hésitez pas à nous recontacter pour plus d'informations.\n\nCordialement,\nL'équipe BAY SA WAAR`);
+      sendEmail(enrollment.email, 'Mise à jour concernant votre demande - BAY SA WAAR',
+        getRejectionEmail(enrollment.firstName))
+        .catch(err => console.error('Erreur email rejection:', err));
     }
 
     // Synchronize photo if approved (legacy logic kept/merged above, but ensuring it runs if manual update happened without trigger inside if-block)

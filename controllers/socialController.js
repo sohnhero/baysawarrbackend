@@ -1,5 +1,11 @@
 import axios from 'axios';
 import SocialConfig from '../models/SocialConfig.js';
+import User from '../models/User.js';
+import Enrollment from '../models/Enrollment.js';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
+import sendEmail from '../utils/sendEmail.js';
+import { getAdminNotificationEmail, getWelcomeEmail } from '../utils/emailTemplates.js';
 
 export async function setConfig(req, res, next) {
   if (req.userRole !== 'admin') throw new Error('Accès interdit');
@@ -147,20 +153,15 @@ export const submitEnrollment = async (req, res, next) => {
     await enrollment.save();
 
     // Envoyer l'email de confirmation à l'utilisateur
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: email,
-      subject: 'Confirmation d’inscription - BAY SA WAAR',
-      text: `Bonjour ${firstName} ${lastName},\n\nVotre inscription en tant que ${type} a été soumise avec succès.\n\nVos identifiants de connexion :\nEmail: ${email}\nMot de passe: ${password}\n\nVeuillez vous connecter à http://localhost:5173/login pour accéder à votre compte et changer votre mot de passe.\n\nCordialement,\nL'équipe BAY SA WAAR`,
-    });
+    sendEmail(email, 'Confirmation d’inscription - BAY SA WAAR',
+      getWelcomeEmail(firstName, email, password)) // Using Welcome Email as it contains credentials
+      .catch(err => console.error('Erreur email user social enrollment:', err));
 
     // Envoyer une notification à l'admin
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: 'admin@baysawaar.com',
-      subject: `Nouvelle demande d'inscription - ${type}`,
-      text: `Type: ${type}\nNom: ${firstName} ${lastName}\nEmail: ${email}\nTéléphone: ${phone}\nPays: ${country}\nVille: ${city}\nEntreprise: ${companyName}`,
-    });
+    const adminDetails = `Type: ${type}\nNom: ${firstName} ${lastName}\nEmail: ${email}\nTéléphone: ${phone}\nPays: ${country}\nVille: ${city}\nEntreprise: ${companyName}`;
+    sendEmail('admin@baysawaar.com', `Nouvelle demande d'inscription - ${type}`,
+      getAdminNotificationEmail(`Nouvelle demande - ${type}`, adminDetails))
+      .catch(err => console.error('Erreur email admin social enrollment:', err));
 
     res.status(201).json({ message: 'Inscription soumise avec succès. Vos identifiants ont été envoyés par email.' });
   } catch (err) {
