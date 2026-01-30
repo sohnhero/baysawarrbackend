@@ -12,7 +12,7 @@ const sendWithGmail = async (to, subject, html) => {
       throw new Error('EMAIL_USER ou EMAIL_PASS manquant');
     }
 
-    const transporter = nodemailer.createTransport({
+    const transporter = createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
