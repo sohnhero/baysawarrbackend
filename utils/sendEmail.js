@@ -6,33 +6,34 @@ dotenv.config();
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-const transport = nodemailer.createTransport({
-  host: 'smtp.gmail.com',
-  port: 587,
-  secure: false, // true pour 465, false pour 587 + STARTTLS
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS,
-  },
-  tls: {
-    rejectUnauthorized: false // ← parfois nécessaire sur Render
-  }
-});
-
 const sendWithGmail = async (to, subject, html) => {
-  const mailOptions = {
-    from: `Bay Sa Waar <${process.env.EMAIL_USER}>`,
-    to,
-    subject,
-    html,
-  };
-
   try {
-    const info = await transport.sendMail(mailOptions);
-    console.log('✅ Email envoyé via Gmail:', info.messageId);
-    return info;
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      throw new Error('EMAIL_USER ou EMAIL_PASS manquant');
+    }
+
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Vérification de la connexion
+    await transporter.verify();
+
+    const result = await transporter.sendMail({
+      from: `Bay Sa Waar <${process.env.EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+    });
+
+    console.log('✅ Email envoyé avec succès via Gmail:', result.messageId);
+    return result;
   } catch (error) {
-    console.error('❌ Erreur Gmail:', error);
+    console.error('❌ Erreur lors de l\'envoi de l\'email (Gmail):', error);
     return null;
   }
 };
