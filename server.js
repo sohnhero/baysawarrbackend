@@ -30,6 +30,11 @@ const app = express();
 
 app.use(helmet());
 
+// Trust proxy for rate limiting
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 const allowedOrigins = [
   'http://localhost:5173',
   'https://front-baysawaar.vercel.app',
@@ -37,9 +42,7 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests without origin (Postman, server-to-server)
     if (!origin) return callback(null, true);
-
     if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -51,7 +54,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// IMPORTANT: handle preflight requests
 app.options('*', cors());
 
 app.use(rateLimit({
