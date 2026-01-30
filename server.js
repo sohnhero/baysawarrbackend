@@ -28,8 +28,14 @@ const app = express();
    SECURITY & MIDDLEWARE
 ======================= */
 
+// Helmet for security headers
 app.use(helmet());
 
+// Trust Vercel (or other reverse proxies) for rate limiting and IP detection
+const trustProxy = process.env.NODE_ENV === 'production' ? 1 : 0;
+app.set('trust proxy', trustProxy);
+
+// CORS configuration
 const allowedOrigins = [
   'http://localhost:5173',
   'https://front-baysawaar.vercel.app',
@@ -37,32 +43,33 @@ const allowedOrigins = [
 
 app.use(cors({
   origin: (origin, callback) => {
-    // allow requests without origin (Postman, server-to-server)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
+    if (!origin) return callback(null, true); // allow Postman, server-to-server
+    if (allowedOrigins.includes(origin)) callback(null, true);
+    else callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-// IMPORTANT: handle preflight requests
+// Handle preflight requests
 app.options('*', cors());
 
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-}));
+// Rate limiter
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100,                 // max requests per IP
+  standardHeaders: true,    // Return rate limit info in headers
+  legacyHeaders: false,     // Disable old X-RateLimit headers
+});
 
+app.use('/api/', apiLimiter);
+
+// Body parsers
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Increase timeout for uploads
+// Increase timeout for long uploads
 app.use((req, res, next) => {
   req.setTimeout(300000); // 5 minutes
   res.setTimeout(300000);

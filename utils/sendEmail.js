@@ -13,11 +13,16 @@ const sendWithGmail = async (to, subject, html) => {
     }
 
     const transporter = createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true pour 465, false pour 587 + STARTTLS
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false // ← parfois nécessaire sur Render
+      }
     });
 
     // Vérification de la connexion
