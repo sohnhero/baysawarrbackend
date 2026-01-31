@@ -31,9 +31,7 @@ const app = express();
 app.use(helmet());
 
 // ✅ REQUIRED for Vercel + rate-limit
-if (process.env.NODE_ENV === 'production') {
-  app.set('trust proxy', 1);
-}
+app.set('trust proxy', 1);
 
 // ✅ Allowed frontend origins
 const allowedOrigins = [
@@ -44,22 +42,13 @@ const allowedOrigins = [
   'https://baysaawaarr.vercel.app'
 ];
 
-// ✅ SAFE CORS CONFIG (NO THROWING)
+// ✅ SAFE CORS CONFIG
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow server-to-server, Postman, Vercel internal
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-
-    // 🚨 DO NOT THROW
-    return callback(null, false);
-  },
+  origin: allowedOrigins,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200
 }));
 
 // ✅ Handle preflight
