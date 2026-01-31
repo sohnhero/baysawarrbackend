@@ -39,6 +39,9 @@ if (process.env.NODE_ENV === 'production') {
 const allowedOrigins = [
   'http://localhost:5173',
   'https://front-baysawaar.vercel.app',
+  'http://localhost:3000',
+  'http://localhost:5174',
+  'https://baysaawaarr.vercel.app'
 ];
 
 // ✅ SAFE CORS CONFIG (NO THROWING)
