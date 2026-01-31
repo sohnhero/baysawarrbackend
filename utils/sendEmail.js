@@ -26,7 +26,7 @@ const sendWithGmail = async (to, subject, html) => {
     });
 
     // Vérification de la connexion
-    //await transporter.verify();
+    await transporter.verify();
 
     const result = await transporter.sendMail({
       from: `Bay Sa Waar <${process.env.EMAIL_USER}>`,
