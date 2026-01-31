@@ -30,43 +30,53 @@ const app = express();
 
 app.use(helmet());
 
-// Trust proxy for rate limiting
+// ✅ REQUIRED for Vercel + rate-limit
 if (process.env.NODE_ENV === 'production') {
   app.set('trust proxy', 1);
 }
 
+// ✅ Allowed frontend origins
 const allowedOrigins = [
   'http://localhost:5173',
   'https://front-baysawaar.vercel.app',
 ];
 
+// ✅ SAFE CORS CONFIG (NO THROWING)
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow server-to-server, Postman, Vercel internal
     if (!origin) return callback(null, true);
+
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
+      return callback(null, true);
     }
+
+    // 🚨 DO NOT THROW
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
+// ✅ Handle preflight
 app.options('*', cors());
 
+// ✅ Rate limiting
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
 }));
 
+// Body parsing
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Increase timeout for uploads
+// Upload timeout
 app.use((req, res, next) => {
-  req.setTimeout(300000); // 5 minutes
+  req.setTimeout(300000);
   res.setTimeout(300000);
   next();
 });
