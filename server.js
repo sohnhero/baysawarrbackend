@@ -39,7 +39,8 @@ const allowedOrigins = [
   'https://front-baysawaar.vercel.app',
   'http://localhost:3000',
   'http://localhost:5174',
-  'https://baysaawaarr.vercel.app'
+  'https://baysaawaarr.vercel.app',
+  'https://www.fabiratrading.com'
 ];
 
 // ✅ SAFE CORS CONFIG
