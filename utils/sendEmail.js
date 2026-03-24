@@ -51,7 +51,7 @@ const sendWithResend = async (to, subject, html) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: 'Bay Sa Waar <onboarding@resend.dev>',
+      from: process.env.EMAIL_FROM || 'Bay Sa Waar <onboarding@resend.dev>',
       to,
       subject,
       html,
@@ -71,7 +71,7 @@ const sendWithResend = async (to, subject, html) => {
 };
 
 const sendEmail = async (to, subject, html) => {
-  const provider = process.env.EMAIL_PROVIDER || 'gmail';
+  const provider = process.env.EMAIL_PROVIDER || 'resend';
 
   if (provider === 'resend') {
     return await sendWithResend(to, subject, html);

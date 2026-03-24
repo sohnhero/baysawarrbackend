@@ -4,9 +4,9 @@ import { CloudinaryStorage } from 'multer-storage-cloudinary';
 
 // Configuration Cloudinary
 cloudinary.config({
-  cloud_name: 'drxouwbms',
-  api_key: '252612838614382',
-  api_secret: 'oB4yl5QLAkvoWb-1rZ5p_uR92YA',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
 // Configuration du stockage Cloudinary pour multer
