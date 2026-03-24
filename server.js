@@ -36,11 +36,12 @@ app.set('trust proxy', 1);
 // ✅ Allowed frontend origins
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://front-baysawaar.vercel.app',
   'http://localhost:3000',
   'http://localhost:5174',
+  'https://front-baysawaar.vercel.app',
   'https://baysaawaarr.vercel.app',
-  'https://www.fabiratrading.com'
+  'https://www.fabiratrading.com',
+  'https://fabiratrading.com'
 ];
 
 // ✅ SAFE CORS CONFIG
