@@ -62,7 +62,7 @@ const baseTemplate = (title, content) => `
     </div>
     <div style="${footerStyle}">
       <p>&copy; ${new Date().getFullYear()} BAY SA WAAR. Tous droits réservés.</p>
-      <p>Dakar, Sénégal | contact@baysawaar.sn</p>
+      <p>Dakar, Sénégal | contact@fabiratrading.com</p>
     </div>
   </div>
 </body>
@@ -79,7 +79,7 @@ export const getWelcomeEmail = (firstName, email, password) => {
       <p style="margin: 5px 0;"><strong>Mot de passe :</strong> <code style="background-color: #ffffff; padding: 2px 6px; border-radius: 4px; border: 1px solid #e5e7eb;">${password}</code></p>
     </div>
     <div style="text-align: center;">
-      <a href="https://baysawaar.com/login" style="${buttonStyle}">Accéder à mon compte</a>
+      <a href="https://www.fabiratrading.com/login" style="${buttonStyle}">Accéder à mon compte</a>
     </div>
     <p style="margin-top: 30px;">Bienvenue dans notre communauté d'impact !</p>
   `;
@@ -92,7 +92,7 @@ export const getApprovalEmail = (firstName) => {
     <p>Nous avons le plaisir de vous informer que votre nouvelle demande d'inscription a été <strong>APPROUVÉE</strong>.</p>
     <p>Comme vous possédez déjà un compte chez nous, vous pouvez simplement continuer à utiliser vos identifiants habituels pour accéder aux nouvelles fonctionnalités.</p>
     <div style="text-align: center;">
-      <a href="https://baysawaar.com/login" style="${buttonStyle}">Se connecter</a>
+      <a href="https://www.fabiratrading.com/login" style="${buttonStyle}">Se connecter</a>
     </div>
   `;
   return baseTemplate('Demande Approuvée', content);
@@ -141,7 +141,7 @@ export const getAdminNotificationEmail = (title, details) => {
       ${formattedDetails}
     </div>
     <div style="text-align: center;">
-      <a href="https://baysawaar.com/admin/dashboard" style="${buttonStyle}">Ouvrir le Dashboard</a>
+      <a href="https://www.fabiratrading.com/login" style="${buttonStyle}">Ouvrir le Dashboard</a>
     </div>
   `;
   return baseTemplate(`Admin: ${title}`, content);
@@ -156,7 +156,7 @@ export const getResetPasswordEmail = (tempPassword) => {
     </div>
     <p>Veuillez vous connecter et changer ce mot de passe immédiatement.</p>
     <div style="text-align: center;">
-      <a href="https://baysawaar.com/login" style="${buttonStyle}">Se connecter</a>
+      <a href="https://www.fabiratrading.com/login" style="${buttonStyle}">Se connecter</a>
     </div>
   `;
   return baseTemplate('Réinitialisation du mot de passe', content);
