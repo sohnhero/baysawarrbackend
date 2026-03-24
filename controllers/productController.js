@@ -115,3 +115,14 @@ export const deleteProduct = async (req, res, next) => {
     next(err);
   }
 };
+
+export const getExternalProducts = async (req, res, next) => {
+  try {
+    const axios = (await import('axios')).default;
+    const response = await axios.get('https://api-shop.fabiratrading.com/api/products');
+    res.json(response.data);
+  } catch (err) {
+    console.error('❌ Proxy Error:', err.message);
+    res.status(500).json({ error: 'Erreur lors de la récupération des produits externes via proxy' });
+  }
+};
