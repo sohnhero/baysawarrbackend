@@ -19,6 +19,7 @@ const productSchema = new Schema({
     value: { type: String }
   }],
   tags: [String],
+  externalUrl: { type: String }, // Link to external ecommerce product
   isActive: { type: Boolean, default: true },
   createdAt: { type: Date, default: Date.now }
 });
