@@ -1,11 +1,11 @@
-import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct, getExternalProducts } from '../controllers/productController.js';
+import express from 'express';
+import { getAllProducts, getProductById, createProduct, updateProduct, deleteProduct } from '../controllers/productController.js';
 import {protect, isAdmin}  from '../middlewares/auth.js';
 
 import { uploadProductImages, handleUploadError } from '../middlewares/cloudinaryUpload.js';
 
 const router = express.Router();
 
-router.get('/external', getExternalProducts);
 router.get('/', getAllProducts);
 router.get('/:id', getProductById);
 router.post('/', protect, isAdmin, uploadProductImages, handleUploadError, createProduct);

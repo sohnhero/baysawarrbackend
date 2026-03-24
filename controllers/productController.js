@@ -115,19 +115,3 @@ export const deleteProduct = async (req, res, next) => {
     next(err);
   }
 };
-
-export const getExternalProducts = async (req, res, next) => {
-  try {
-    const axios = (await import('axios')).default;
-    // Timeout of 10s to avoid hanging during external fetch
-    const response = await axios.get('https://api-shop.fabiratrading.com/api/products', {
-      timeout: 10000 
-    });
-    res.json(response.data);
-  } catch (err) {
-    console.error('❌ Proxy Error:', err.message);
-    // Return 200 with empty array instead of 500 to avoid CORS issues on error pages
-    res.json([]);
-  }
-};
-
