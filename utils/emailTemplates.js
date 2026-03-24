@@ -161,3 +161,15 @@ export const getResetPasswordEmail = (tempPassword) => {
   `;
   return baseTemplate('Réinitialisation du mot de passe', content);
 };
+
+export const getNewsletterWelcomeEmail = () => {
+  const content = `
+    <p>Merci de vous être abonné à notre newsletter !</p>
+    <p>Vous recevrez désormais nos dernières actualités, nos offres spéciales et des mises à jour sur nos projets d'impact.</p>
+    <p>Nous sommes ravis de vous compter parmi nos lecteurs.</p>
+    <div style="text-align: center; margin-top: 30px;">
+      <a href="https://www.fabiratrading.com" style="${buttonStyle}">Visiter notre site</a>
+    </div>
+  `;
+  return baseTemplate('Bienvenue à la Newsletter', content);
+};

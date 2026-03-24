@@ -1,6 +1,7 @@
 import Contact from '../models/Contact.js';
 import Newsletter from '../models/Newsletter.js';
 import sendEmail from '../utils/sendEmail.js';
+import { getNewsletterWelcomeEmail } from '../utils/emailTemplates.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export async function submitContact(req, res, next) {
@@ -47,13 +48,13 @@ export async function subscribeNewsletter(req, res, next) {
     await subscription.save();
     console.log('✅ Abonnement sauvegardé');
     
-    // Envoi d'email de confirmation
+      // Envoi d'email de confirmation
     try {
       console.log('📧 Envoi de l\'email de confirmation...');
       await sendEmail(
         email, 
         'Bienvenue à la newsletter BAY SA WAAR', 
-        `Bonjour,\n\nMerci de vous être abonné à notre newsletter ! Vous recevrez désormais nos dernières actualités et offres spéciales.\n\nCordialement,\nL'équipe BAY SA WAAR`
+        getNewsletterWelcomeEmail()
       );
       console.log('✅ Email de confirmation envoyé');
     } catch (emailError) {
