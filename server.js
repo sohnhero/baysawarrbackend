@@ -19,6 +19,7 @@ import eventRoutes from './routes/event.js';
 
 // Middleware
 import errorHandler from './middlewares/errorHandler.js';
+import ensureDbConnected from './middlewares/ensureDbConnected.js';
 
 dotenv.config();
 
@@ -73,6 +74,9 @@ app.use((req, res, next) => {
   res.setTimeout(300000);
   next();
 });
+
+// ✅ Ensure DB connection for every request (Serverless friendly)
+app.use(ensureDbConnected);
 
 /* =======================
    ROUTES
