@@ -1,9 +1,9 @@
 import express from 'express';
-import mongoose from 'mongoose';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
+import connectDB from './config/db.js';
 
 // Routes
 import authRoutes from './routes/auth.js';
@@ -99,8 +99,7 @@ app.use(errorHandler);
    DATABASE
 ======================= */
 
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ MongoDB connecté'))
+connectDB()
   .catch(err => console.error('❌ Erreur MongoDB:', err));
 
 /* =======================
