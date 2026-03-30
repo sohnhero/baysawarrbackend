@@ -37,16 +37,28 @@ app.set('trust proxy', 1);
 // ✅ Allowed frontend origins
 const allowedOrigins = [
   'http://localhost:5173',
-  'https://front-baysawaar.vercel.app',
   'http://localhost:3000',
   'http://localhost:5174',
+  'https://front-baysawaar.vercel.app',
   'https://baysaawaarr.vercel.app',
-  'https://www.fabiratrading.com'
+  'https://www.fabiratrading.com',
+  'https://fabiratrading.com'
 ];
 
 // ✅ SAFE CORS CONFIG
 app.use(cors({
-  origin: allowedOrigins,
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if the origin is in our allowed list
+    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.fabiratrading.com')) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Rejected origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
@@ -54,7 +66,17 @@ app.use(cors({
 }));
 
 // ✅ Handle preflight
-app.options('*', cors());
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.indexOf(origin) !== -1 || (origin && origin.endsWith('.fabiratrading.com'))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    return res.sendStatus(200);
+  }
+  res.sendStatus(403);
+});
 
 // ✅ Rate limiting
 app.use(rateLimit({
