@@ -29,12 +29,7 @@ const app = express();
    SECURITY & MIDDLEWARE
 ======================= */
 
-app.use(helmet());
-
-// ✅ REQUIRED for Vercel + rate-limit
-app.set('trust proxy', 1);
-
-// ✅ Allowed frontend origins
+// ✅ SAFE CORS CONFIG - MUST BE BEFORE HELMET
 const allowedOrigins = [
   'http://localhost:5173',
   'http://localhost:3000',
@@ -45,38 +40,37 @@ const allowedOrigins = [
   'https://fabiratrading.com'
 ];
 
-// ✅ SAFE CORS CONFIG
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
     if (!origin) return callback(null, true);
     
-    // Check if the origin is in our allowed list
-    if (allowedOrigins.indexOf(origin) !== -1 || origin.endsWith('.fabiratrading.com')) {
+    // Exact match or ends with .fabiratrading.com
+    const isAllowed = allowedOrigins.indexOf(origin) !== -1 || 
+                     origin.endsWith('.fabiratrading.com') ||
+                     origin === 'https://fabiratrading.com';
+    
+    if (isAllowed) {
       callback(null, true);
     } else {
       console.warn(`[CORS] Rejected origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
+      callback(null, false); // Return false instead of Error to avoid 500 error page
     }
   },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With', 'Origin'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
 
-// ✅ Handle preflight
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  if (allowedOrigins.indexOf(origin) !== -1 || (origin && origin.endsWith('.fabiratrading.com'))) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-    return res.sendStatus(200);
-  }
-  res.sendStatus(403);
-});
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginOpenerPolicy: { policy: "unsafe-none" }
+}));
+
+// ✅ Handle preflight correctly (if needed separately, but cors does it)
+app.options('*', cors());
 
 // ✅ Rate limiting
 app.use(rateLimit({
