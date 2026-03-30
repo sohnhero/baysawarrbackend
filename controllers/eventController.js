@@ -10,19 +10,41 @@ import { formatUploadData } from '../middlewares/cloudinaryUpload.js';
 // @desc    Créer un événement (admin only)
 // @route   POST /api/events
 export const createEvent = asyncHandler(async (req, res) => {
+  console.log('[CREATE_EVENT] Controller invoked');
+  console.log('[CREATE_EVENT] req.body:', req.body);
+  console.log('[CREATE_EVENT] req.files:', req.files);
+  
   const uploadData = formatUploadData(req);
+  console.log('[CREATE_EVENT] uploadData:', uploadData);
+
   const { title, dateStart, dateEnd, ...rest } = req.body;
-  const slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+  
+  if (!title) {
+    res.status(400);
+    throw new Error('Le titre est requis');
+  }
+
+  const slug = title.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Enlever les accents
+    .replace(/[^a-z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '');
 
   const eventData = {
     ...rest,
     title,
     slug,
-    dateStart: new Date(dateStart),
-    dateEnd: new Date(dateEnd),
+    dateStart: dateStart ? new Date(dateStart) : undefined,
+    dateEnd: dateEnd ? new Date(dateEnd) : undefined,
+    maxParticipants: req.body.maxParticipants ? Number(req.body.maxParticipants) : undefined,
+    priceMember: req.body.priceMember !== undefined ? Number(req.body.priceMember) : 0,
+    priceNonMember: req.body.priceNonMember !== undefined ? Number(req.body.priceNonMember) : 0,
+    isFeatured: req.body.isFeatured === 'true',
     createdBy: req.user._id,
     ...uploadData
   };
+
+  console.log('[CREATE_EVENT] Final eventData to save:', eventData);
 
   const event = await Event.create(eventData);
 
@@ -109,7 +131,7 @@ export const updateEvent = asyncHandler(async (req, res) => {
   console.log('[UPDATE_EVENT] Controller invoked for event ID:', req.params.id);
   console.log('[UPDATE_EVENT] req.body:', req.body);
   console.log('[UPDATE_EVENT] req.files:', req.files);
-  console.log('[UPDATE_EVENT] req.file:', req.file);
+  
   const { title, dateStart, dateEnd, ...rest } = req.body;
   const uploadData = formatUploadData(req);
   console.log('[UPDATE_EVENT] uploadData:', uploadData);
@@ -122,21 +144,36 @@ export const updateEvent = asyncHandler(async (req, res) => {
   }
 
   // Update slug if title changes
-  let slug = event.slug;
   if (title && title !== event.title) {
-    slug = title.toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-');
+    event.slug = title.toLowerCase()
+      .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]/g, '-')
+      .replace(/-+/g, '-')
+      .replace(/^-|-$/g, '');
   }
 
   event.title = title || event.title;
-  event.slug = slug;
   event.description = req.body.description || event.description;
   event.dateStart = dateStart ? new Date(dateStart) : event.dateStart;
   event.dateEnd = dateEnd ? new Date(dateEnd) : event.dateEnd;
   event.location = req.body.location || event.location;
-  event.maxParticipants = req.body.maxParticipants || event.maxParticipants;
-  event.priceMember = req.body.priceMember !== undefined ? req.body.priceMember : event.priceMember;
-  event.priceNonMember = req.body.priceNonMember !== undefined ? req.body.priceNonMember : event.priceNonMember;
-  event.isFeatured = req.body.isFeatured !== undefined ? req.body.isFeatured : event.isFeatured;
+  
+  if (req.body.maxParticipants !== undefined) {
+    event.maxParticipants = Number(req.body.maxParticipants);
+  }
+  
+  if (req.body.priceMember !== undefined) {
+    event.priceMember = Number(req.body.priceMember);
+  }
+  
+  if (req.body.priceNonMember !== undefined) {
+    event.priceNonMember = Number(req.body.priceNonMember);
+  }
+  
+  if (req.body.isFeatured !== undefined) {
+    event.isFeatured = req.body.isFeatured === 'true' || req.body.isFeatured === true;
+  }
+  
   event.type = req.body.type || event.type;
 
   // Handle images update
