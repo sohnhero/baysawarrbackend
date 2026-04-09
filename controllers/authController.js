@@ -40,7 +40,7 @@ export const login = async (req, res, next) => {
       });
     }
 
-    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token, user: { id: user._id, email, role: user.role, firstName: user.firstName, lastName: user.lastName } });
   } catch (err) {
     next(err);

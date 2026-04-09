@@ -1,8 +1,8 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
-import dotenv from 'dotenv';
 import connectDB from './config/db.js';
 
 // Routes
@@ -21,7 +21,6 @@ import eventRoutes from './routes/event.js';
 import errorHandler from './middlewares/errorHandler.js';
 import ensureDbConnected from './middlewares/ensureDbConnected.js';
 
-dotenv.config();
 
 const app = express();
 
